@@ -17,8 +17,9 @@ public class Place {
     @Size(max = 50, message = "Name should be at most 50 characters")
     private String name;
     //private int categoryId;
-    @NotNull(message = "User ID is required")
-    private int userId;
+    @ManyToOne
+    @JoinColumn(name="user_id")
+    private User user;
     @NotBlank(message = "Description is required")
     @Size(max = 255, message = "Description should be at most 255 characters")
     private String description;
@@ -39,9 +40,9 @@ public class Place {
     // constructors
     public Place(){}
 
-    public Place(String name, int userId, Status status, LocalDateTime dateCreated, LocalDateTime dateModified, Point<G2D> coordinate, Category category) {
+    public Place(String name, User user, Status status, LocalDateTime dateCreated, LocalDateTime dateModified, Point<G2D> coordinate, Category category) {
         this.name = name;
-        this.userId = userId;
+        this.user = user;
         this.status = status;
         this.dateCreated = dateCreated;
         this.dateModified = dateModified;
@@ -69,12 +70,12 @@ public class Place {
     }
 
 
-    public int getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserId(int userId) {
-        this.userId = userId;
+    public void setUserId(User user) {
+        this.user = user;
     }
 
     public Status getStatus() {
@@ -125,7 +126,7 @@ public class Place {
         return "Place{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", userId=" + userId +
+                ", user=" + user+
                 ", status=" + status +
                 ", dateCreated=" + dateCreated +
                 ", dateModified=" + dateModified +
