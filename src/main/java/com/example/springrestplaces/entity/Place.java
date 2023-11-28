@@ -28,10 +28,12 @@ public class Place {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.PUBLIC;
+    @Column(name="date_created")
     private LocalDateTime dateCreated;
+    @Column(name="date_modified")
     private LocalDateTime dateModified;
     @NotBlank(message = "points are required")
-    private Point<G2D> coordinate;
+    private Point<G2D> coordinates;
 
     @ManyToOne
     @JoinColumn(name="category_id")
@@ -46,7 +48,7 @@ public class Place {
         this.status = status;
         this.dateCreated = dateCreated;
         this.dateModified = dateModified;
-        this.coordinate = coordinate;
+        this.coordinates = coordinates;
         this.category = category;
     }
 
@@ -102,12 +104,12 @@ public class Place {
         this.dateModified = dateModified;
     }
 
-    public Point<G2D> getCoordinate() {
-        return coordinate;
+    public Point<G2D> getCoordinates() {
+        return coordinates;
     }
 
-    public void setCoordinate(Point<G2D> coordinate) {
-        this.coordinate = coordinate;
+    public void setCoordinates(Point<G2D> coordinates) {
+        this.coordinates = coordinates;
     }
 
     public Category getCategory() {
@@ -130,7 +132,7 @@ public class Place {
                 ", status=" + status +
                 ", dateCreated=" + dateCreated +
                 ", dateModified=" + dateModified +
-                ", coordinate=" + coordinate +
+                ", coordinates=" + coordinates +
                 ", category=" + category +
                 '}';
     }

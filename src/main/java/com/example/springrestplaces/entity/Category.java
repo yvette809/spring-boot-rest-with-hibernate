@@ -6,11 +6,13 @@ import jakarta.validation.constraints.*;
 import java.util.List;
 
 @Entity
+@Table(name="category")
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     @NotBlank(message = "name is required")
+    @Size(max = 50)
     private String name;
     @NotBlank(message = "symbol is required")
     private String symbol;
@@ -19,7 +21,8 @@ public class Category {
     private String description;
 
     // one to many
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    @Transient
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     List<Place> places;
 
 
