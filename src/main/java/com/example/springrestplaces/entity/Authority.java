@@ -1,6 +1,5 @@
 package com.example.springrestplaces.entity;
 
-
 import jakarta.persistence.*;
 
 @Entity
@@ -8,8 +7,6 @@ import jakarta.persistence.*;
 public class Authority {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
 
     @Column(name = "user_id", nullable = false)
     private String userId;
@@ -35,13 +32,6 @@ public class Authority {
 
     // Getters and setters
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public String getUsername() {
         return userId;
@@ -72,7 +62,7 @@ public class Authority {
     @Override
     public String toString() {
         return "Authority{" +
-                "id=" + id +
+
                 ", userId='" + userId + '\'' +
                 ", authority='" + authority + '\'' +
                 ", user=" + user +

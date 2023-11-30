@@ -1,11 +1,15 @@
 package com.example.springrestplaces.entity;
 
+import com.example.springrestplaces.utils.Point2DSerializer;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.Point;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name="place")
@@ -17,6 +21,8 @@ public class Place {
     @Size(max = 50, message = "Name should be at most 50 characters")
     private String name;
     //private int categoryId;
+
+   @JsonIgnore
     @ManyToOne
     @JoinColumn(name="user_id")
     private User user;
@@ -32,6 +38,7 @@ public class Place {
     private LocalDateTime dateCreated;
     @Column(name="date_modified")
     private LocalDateTime dateModified;
+    @JsonSerialize(using = Point2DSerializer.class)
     @NotBlank(message = "points are required")
     private Point<G2D> coordinates;
 
@@ -42,9 +49,11 @@ public class Place {
     // constructors
     public Place(){}
 
-    public Place(String name, User user, Status status, LocalDateTime dateCreated, LocalDateTime dateModified, Point<G2D> coordinate, Category category) {
+    public Place(int id, String name, User user, String description, Status status, LocalDateTime dateCreated, LocalDateTime dateModified, Point<G2D> coordinates, Category category) {
+        this.id = id;
         this.name = name;
         this.user = user;
+        this.description = description;
         this.status = status;
         this.dateCreated = dateCreated;
         this.dateModified = dateModified;
@@ -76,7 +85,7 @@ public class Place {
         return user;
     }
 
-    public void setUserId(User user) {
+    public void setUser(User user) {
         this.user = user;
     }
 
@@ -112,6 +121,14 @@ public class Place {
         this.coordinates = coordinates;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public Category getCategory() {
         return category;
     }
@@ -135,6 +152,22 @@ public class Place {
                 ", coordinates=" + coordinates +
                 ", category=" + category +
                 '}';
+    }
+
+    //equals
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Place place = (Place) o;
+        return Objects.equals(coordinates, place.coordinates);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(coordinates);
     }
 
     // Enums

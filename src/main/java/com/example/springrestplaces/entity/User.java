@@ -1,7 +1,5 @@
 package com.example.springrestplaces.entity;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -10,10 +8,8 @@ import java.util.List;
 @Table(name="users")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
     @Column(nullable = false ,unique = true)
-    private String username;
+    private String userId;
     @Column(nullable = false)
     private String password;
 
@@ -21,15 +17,15 @@ public class User {
     private boolean enabled;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private Authority authority;
+    private Category.Authority authority;
     @OneToMany(mappedBy = "user")
     private List<Place> places;
 
     // Constructors
     public User(){}
 
-    public User(String username, String password, boolean enabled, Authority authority) {
-        this.username = username;
+    public User(String userId, String password, boolean enabled, Category.Authority authority) {
+        this.userId= userId;
         this.password = password;
         this.enabled = enabled;
         this.authority = authority;
@@ -37,20 +33,14 @@ public class User {
 
     // getters and setters
 
-    public int getId() {
-        return id;
+
+
+    public String getUserId() {
+        return userId;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUsername(String userId) {
+        this.userId = userId;
     }
 
     public String getPassword() {
@@ -77,11 +67,11 @@ public class User {
         this.places = places;
     }
 
-    public Authority getAuthority() {
+    public Category.Authority getAuthority() {
         return authority;
     }
 
-    public void setAuthority(Authority authority) {
+    public void setAuthority(Category.Authority authority) {
         this.authority = authority;
     }
 
@@ -91,8 +81,8 @@ public class User {
     @Override
     public String toString() {
         return "User{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
+
+                ", userId='" + userId + '\'' +
                 ", password='" + password + '\'' +
                 ", enabled=" + enabled +
                 ", authority=" + authority +

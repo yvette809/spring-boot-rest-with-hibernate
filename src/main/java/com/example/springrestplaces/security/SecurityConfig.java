@@ -24,8 +24,8 @@ import javax.sql.DataSource;
 @Configuration
 public class SecurityConfig {
 
-@Autowired
-private DataSource dataSource;
+    @Autowired
+    private DataSource dataSource;
 
     @Bean
     public UserDetailsManager userDetailsManager(DataSource dataSource) {
@@ -47,7 +47,8 @@ private DataSource dataSource;
         http
                 .authorizeHttpRequests(configurer ->
                         configurer
-                                .requestMatchers(HttpMethod.GET, "/api/places/more-specific-path").authenticated()
+                                .requestMatchers(HttpMethod.GET, "/api/places/public").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/api/places/public").authenticated()
                                 .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/api/categories**").authenticated()
                                 .requestMatchers(HttpMethod.POST, "/api/categories").hasRole("ADMIN")
