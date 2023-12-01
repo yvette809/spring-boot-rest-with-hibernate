@@ -25,7 +25,7 @@ public class PlaceController {
         this.placeService = placeService;
     }
 
-    @GetMapping("/places/public")
+    @GetMapping("/places")
     ResponseEntity<List<Place>> getAllPublicPlaces(){
         List<Place> publicPlaces = placeService.getAllPublicPlaces();
         if(publicPlaces.isEmpty()){
@@ -41,8 +41,8 @@ public class PlaceController {
 
 
 
-        @GetMapping("/places")
-        public ResponseEntity<List<Place>> getAllPublicPlacesByCategory(@RequestParam String category) {
+        @GetMapping("/places/{category}")
+        public ResponseEntity<List<Place>> getAllPublicPlacesByCategory(@PathVariable String category) {
 
             List<Place> publicPlacesInCategory = placeService.getAllPublicPlacesInCategory(category);
 
@@ -63,17 +63,17 @@ public class PlaceController {
     }
 
     @PostMapping("/places")
-    public ResponseEntity<Place> createAPlace(Place place){
+    public ResponseEntity<Place> createAPlace(Place place, Integer categoryId){
 
-        Place newPlace = placeService.createPlace(place);
+        Place newPlace = placeService.createPlace(place, categoryId);
         return ResponseEntity.status(201).build();
     }
 
-    @PutMapping("/{placeId}")
+    @PutMapping("/places")
     public ResponseEntity<Place> updatePlace(
             @PathVariable int placeId,
-            @RequestBody Place updatedPlace,
-            @AuthenticationPrincipal UserDetails userDetails
+            @RequestBody Place updatedPlace
+
     ) {
         try {
             Place updatedPlaceResult = placeService.updatePlace(placeId, updatedPlace);
@@ -85,6 +85,12 @@ public class PlaceController {
         }
     }
 
+    @DeleteMapping("/places/{placeId}")
+    public ResponseEntity<String> deletePlace(@PathVariable Integer placeId) {
+        placeService.deletePlace(placeId);
+        String responseMessage = "Place with ID " + placeId+ " deleted successfully.";
+        return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+    }
 
 }
 

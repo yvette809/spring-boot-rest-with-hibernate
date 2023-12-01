@@ -2,6 +2,7 @@ package com.example.springrestplaces.controller;
 
 
 import com.example.springrestplaces.entity.Category;
+import com.example.springrestplaces.exceptions.ResourceNotFoundException;
 import com.example.springrestplaces.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,12 +36,14 @@ public class CategoryController {
     }
 
 
-    @GetMapping("/categories/{categoryId}")
-    public ResponseEntity<Category> getCategoryById(@PathVariable Integer categoryId) {
-        Optional<Category> category = categoryService.getCategoryById(categoryId);
-
-        return category.map(c -> ResponseEntity.ok().body(c))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping("/categories/{id}")
+    public ResponseEntity<Category> getCategoryById(@PathVariable Integer id) {
+        try {
+            Category category = categoryService.getCategoryById(id);
+            return ResponseEntity.ok(category);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping("/categories")

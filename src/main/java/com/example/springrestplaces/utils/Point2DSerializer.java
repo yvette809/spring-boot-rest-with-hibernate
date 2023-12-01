@@ -1,16 +1,13 @@
 package com.example.springrestplaces.utils;
 
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.Point;
-import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
 
-@Configuration
 public class Point2DSerializer extends JsonSerializer<Point<G2D>> {
     @Override
     public void serialize(Point<G2D> value, JsonGenerator gen, SerializerProvider serializerProvider) throws IOException {

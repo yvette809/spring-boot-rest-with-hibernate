@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,36 +46,28 @@ public class SecurityConfig {
     @Bean
     protected SecurityFilterChain filterChain (HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(configurer ->
-                        configurer
-                                .requestMatchers(HttpMethod.GET, "/api/places/public").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/places/public").authenticated()
-                                .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/categories**").authenticated()
-                                .requestMatchers(HttpMethod.POST, "/api/categories").hasRole("ADMIN")
-                )
                 .httpBasic(Customizer.withDefaults())
                 .logout(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(AbstractHttpConfigurer::disable)
-                .headers(AbstractHttpConfigurer::disable);
+                .headers(AbstractHttpConfigurer::disable)
+                .sessionManagement(ma -> ma.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorize ->
+                       authorize
+                               .requestMatchers("/error").permitAll()
+                               .requestMatchers(HttpMethod.GET, "/api/categories").permitAll()
+                               .requestMatchers(HttpMethod.GET, "/api/categories/*").permitAll()
+                               .requestMatchers(HttpMethod.POST, "/api/categories").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/places").authenticated()
+                               .requestMatchers(HttpMethod.GET, "/api/places/*").permitAll()
+                               .requestMatchers(HttpMethod.PUT, "/api/places").authenticated()
+                               .requestMatchers(HttpMethod.DELETE, "/api/places/*").authenticated()
+                                .requestMatchers(HttpMethod.GET, "/api/places").authenticated()
+                               .anyRequest().denyAll());
         return http.build();
 
 
     }
-
-   /* @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth)
-            throws Exception {
-        auth.jdbcAuthentication()
-                .dataSource(dataSource)
-                .usersByUsernameQuery("select id,password,enabled "
-                        + "from users "
-                        + "where id= ?")
-                .authoritiesByUsernameQuery("select user_id,authority "
-                        + "from authorities "
-                        + "where user_id = ?");
-    } */
 
 
     @Bean

@@ -1,5 +1,6 @@
 package com.example.springrestplaces.entity;
 
+import com.example.springrestplaces.validation.EmojiSymbol;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -20,6 +21,7 @@ public class Category {
     @NotBlank(message = "name is required")
     @Size(max = 50)
     private String name;
+    @EmojiSymbol
     @NotBlank(message = "symbol is required")
     private String symbol;
     @NotBlank(message = "Description is required")

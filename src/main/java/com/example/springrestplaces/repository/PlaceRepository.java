@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface PlaceRepository extends JpaRepository<Place,Integer> {
-    List<Place> findAllByStatus(Place.Status status);
-    List<Place>findAllByStatusAndCategory_Name(Place.Status status, String categoryName);
+    List<Place> findAllByVisible(Boolean  visible);
+    List<Place>findAllByVisibleAndCategory_Name(Boolean visible, String categoryName);
     List<Place> findAllByUserUserId(String userId);
 }

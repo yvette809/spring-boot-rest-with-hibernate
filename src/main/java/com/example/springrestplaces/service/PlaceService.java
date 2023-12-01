@@ -1,13 +1,15 @@
 package com.example.springrestplaces.service;
 
-
 import com.example.springrestplaces.entity.Category;
 import com.example.springrestplaces.entity.Place;
 import com.example.springrestplaces.entity.User;
+import com.example.springrestplaces.exceptions.ResourceNotFoundException;
+import com.example.springrestplaces.repository.CategoryRepository;
 import com.example.springrestplaces.repository.PlaceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,103 +19,110 @@ import java.util.stream.Collectors;
 
 @Service
 public class PlaceService {
-    private PlaceRepository placeRepository;
+    private final PlaceRepository placeRepository;
+    private final CategoryRepository categoryRepository;
 
     @Autowired
-    public PlaceService(PlaceRepository placeRepository) {
+    public PlaceService(PlaceRepository placeRepository, CategoryRepository categoryRepository) {
         this.placeRepository = placeRepository;
+        this.categoryRepository = categoryRepository;
     }
 
-    public List<Place> getAllPublicPlaces(){
-        return placeRepository.findAllByStatus(Place.Status.PUBLIC);
-
+    public List<Place> getAllPublicPlacesByFilter() {
+        return placeRepository.findAll().stream()
+                .filter(Place::getVisible)
+                .collect(Collectors.toList());
     }
+
+    public List<Place> getAllPublicPlaces() {
+        return placeRepository.findAllByVisible(true);
+    }
+
     public List<Place> getAllPublicPlacesInCategory(String categoryName) {
-        return placeRepository.findAllByStatusAndCategory_Name(Place.Status.PUBLIC, categoryName);
-    }
-
-
-    //method2
-    public List<Place> getAllPublicPlacesAndCategory(Category category){
-        List<Place> publicPlacesInCategory = placeRepository.findAllByStatus(Place.Status.PUBLIC)
+        return placeRepository.findAll()
                 .stream()
-                .filter(place-> place.getCategory().getName().equals(category.getName()))
-                .toList();
-        return publicPlacesInCategory;
+                .filter(place -> {
+                    Category category = place.getCategory();
+                    return category != null && category.getName().equals(categoryName) && place.getVisible();
+                })
+                .collect(Collectors.toList());
     }
 
-    public List<Place> getALLPlacesForLoggedInUser(String userId){
+    public List<Place> getALLPlacesForLoggedInUser(String userId) {
         return placeRepository.findAllByUserUserId(userId);
     }
 
-    public Place createPlace( Place placeRequest){
-        if (!SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
+    public Place createPlace(Place place, Integer categoryId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (!auth.isAuthenticated()) {
             throw new RuntimeException("User must be logged in to create a place");
         }
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User currentUser = (User) auth.getPrincipal();
 
         // create a new place entity
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found with ID: " + categoryId, categoryId));
         Place newPlace = new Place();
-        newPlace.setName(placeRequest.getName());
-        newPlace.setDescription(placeRequest.getDescription());
-        newPlace.setStatus(placeRequest.getStatus());
+        newPlace.setName(place.getName());
+        newPlace.setDescription(place.getDescription());
+        newPlace.setVisible(place.getVisible());
         newPlace.setUser(currentUser);
-        newPlace.setCategory(placeRequest.getCategory());
+        newPlace.setCategory(category);
         newPlace.setDateCreated(LocalDateTime.now()); // Set the current date/time
 
         // Assuming placeRequest contains the coordinates
-        newPlace.setCoordinates(placeRequest.getCoordinates());
+        newPlace.setCoordinate(place.getCoordinate());
         return placeRepository.save(newPlace);
     }
 
-    public Place updatePlace(Integer placeId,Place place) {
+    public Place updatePlace(Integer placeId, Place place) {
         // Check if user is logged in
         if (!SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
             throw new RuntimeException("User must be logged in to update a place");
         }
 
         // Check if place exists and belongs to the logged-in user
-        Optional<Place> existingPlace = placeRepository.findById(placeId);
-        if (!existingPlace.isPresent() || !existingPlace.get().getUser().getUserId().equals(getCurrentUserId())) {
-            throw new RuntimeException("Place not found or does not belong to loggedInUser");
+        Place existingPlace = placeRepository.findById(placeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Place not found with ID: " + placeId, placeId));
+
+        if (!existingPlace.getUser().getUserId().equals(getCurrentUserId())) {
+            throw new RuntimeException("Place does not belong to loggedInUser");
         }
 
         // Update place details
-        existingPlace.get().setName(place.getName());
-        existingPlace.get().setDescription(place.getDescription());
-        existingPlace.get().setCategory(place.getCategory());
+        existingPlace.setName(place.getName());
+        existingPlace.setDescription(place.getDescription());
+        existingPlace.setCategory(place.getCategory());
 
         // Save updated place to the database
-        return placeRepository.save(existingPlace.get());
+        return placeRepository.save(existingPlace);
     }
 
     private String getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
-            User currentUser = (User) authentication.getPrincipal();
-            return currentUser.getUserId();
+            UserDetails currentUser = (UserDetails) authentication.getPrincipal();
+            return currentUser.getUsername();
         } else {
             return null;
         }
     }
 
-    public void deletePlace(Integer id){
-        // user must be logged in or be ad admin
+    public void deletePlace(Integer id) {
+        // user must be logged in or be an admin
         if (!SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
-            throw new RuntimeException("User must be logged in to update a place");
+            throw new RuntimeException("User must be logged in to delete a place");
         }
 
         // check if place was created by loggedIn user
+        Place place = placeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Place not found with ID: " + id, id));
 
-        Optional<Place> place = placeRepository.findById(id);
-        if (!place.isPresent() || !place.get().getUser().getUserId().equals(getCurrentUserId())) {
-            throw new RuntimeException("Place not found or does not belong to loggedInUser");
+        if (!place.getUser().getUserId().equals(getCurrentUserId())) {
+            throw new RuntimeException("Place does not belong to loggedInUser");
         }
 
-
-         placeRepository.delete(place.get());
-        System.out.println("Place with id:" + id + "deleted");
-
+        placeRepository.delete(place);
+        System.out.println("Place with id:" + id + " deleted");
     }
 }
-

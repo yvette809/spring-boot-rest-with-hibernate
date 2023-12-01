@@ -6,7 +6,10 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import org.geolatte.geom.G2D;
+
 import org.geolatte.geom.Point;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -17,30 +20,28 @@ public class Place {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @NotBlank(message = "Name is required")
-    @Size(max = 50, message = "Name should be at most 50 characters")
+    @Column(nullable = false)
     private String name;
     //private int categoryId;
 
-   @JsonIgnore
-    @ManyToOne
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="user_id")
     private User user;
     @NotBlank(message = "Description is required")
     @Size(max = 255, message = "Description should be at most 255 characters")
     private String description;
-
-
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status = Status.PUBLIC;
+    private Boolean visible = false;
+    @CreationTimestamp
     @Column(name="date_created")
     private LocalDateTime dateCreated;
+    @UpdateTimestamp
     @Column(name="date_modified")
     private LocalDateTime dateModified;
+    @JsonIgnore
     @JsonSerialize(using = Point2DSerializer.class)
-    @NotBlank(message = "points are required")
-    private Point<G2D> coordinates;
+    private Point<G2D> coordinate;
 
     @ManyToOne
     @JoinColumn(name="category_id")
@@ -49,15 +50,15 @@ public class Place {
     // constructors
     public Place(){}
 
-    public Place(int id, String name, User user, String description, Status status, LocalDateTime dateCreated, LocalDateTime dateModified, Point<G2D> coordinates, Category category) {
+    public Place(int id, String name, User user, String description, Boolean visible, LocalDateTime dateCreated, LocalDateTime dateModified, Point<G2D> coordinate, Category category) {
         this.id = id;
         this.name = name;
         this.user = user;
         this.description = description;
-        this.status = status;
+        this.visible = visible;
         this.dateCreated = dateCreated;
         this.dateModified = dateModified;
-        this.coordinates = coordinates;
+        this.coordinate = coordinate;
         this.category = category;
     }
 
@@ -89,12 +90,20 @@ public class Place {
         this.user = user;
     }
 
-    public Status getStatus() {
-        return status;
+    public Boolean getVisible() {
+        return visible;
     }
 
-    public void setStatus(Status status) {
-        this.status = status;
+    public void setVisible(Boolean visible) {
+        this.visible = visible;
+    }
+
+    public Point<G2D> getCoordinate() {
+        return coordinate;
+    }
+
+    public void setCoordinate(Point<G2D> coordinate) {
+        this.coordinate = coordinate;
     }
 
     public LocalDateTime getDateCreated() {
@@ -113,13 +122,6 @@ public class Place {
         this.dateModified = dateModified;
     }
 
-    public Point<G2D> getCoordinates() {
-        return coordinates;
-    }
-
-    public void setCoordinates(Point<G2D> coordinates) {
-        this.coordinates = coordinates;
-    }
 
     public String getDescription() {
         return description;
@@ -146,10 +148,10 @@ public class Place {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", user=" + user+
-                ", status=" + status +
+                ", visible=" + visible +
                 ", dateCreated=" + dateCreated +
                 ", dateModified=" + dateModified +
-                ", coordinates=" + coordinates +
+                ", coordinate=" + coordinate +
                 ", category=" + category +
                 '}';
     }
@@ -162,19 +164,16 @@ public class Place {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Place place = (Place) o;
-        return Objects.equals(coordinates, place.coordinates);
+        return Objects.equals(coordinate, place.coordinate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(coordinates);
+        return Objects.hash(coordinate);
     }
 
-    // Enums
-    public enum Status {
-        PUBLIC,
-        PRIVATE
-    }
+
+
 
 
 }
